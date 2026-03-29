@@ -22,10 +22,8 @@ a{color:var(--primary)}
 .tab.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(13,147,115,.35)}
 #settings-btn{margin-left:8px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:6px;transition:background var(--transition),color var(--transition);flex-shrink:0}
 #settings-btn:hover{background:var(--bg);color:var(--primary)}
-#location-fallback{background:#fffbeb;border-bottom:1px solid #f6d860;padding:10px 16px;font-size:13px;color:#744210;flex-shrink:0}
-.fallback-inputs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.fallback-inputs input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:180px}
-.fallback-inputs button{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;cursor:pointer}
+#location-fallback{background:#fffbeb;border-bottom:1px solid #f6d860;padding:12px 16px;font-size:13px;color:#744210;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#use-location-btn{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
 #app-body{flex:1;display:flex;overflow:hidden;position:relative}
 #sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 #sidebar-header{padding:10px 16px;border-bottom:1px solid var(--border);min-height:40px;display:flex;align-items:center}
@@ -62,16 +60,15 @@ a{color:var(--primary)}
 #settings-drawer.open{right:0}
 .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
 .drawer-header h2{font-size:17px;font-weight:700;color:var(--text)}
-#close-settings-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:background var(--transition)}
+#close-settings-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px}
 .drawer-body{padding:20px;display:flex;flex-direction:column;gap:20px}
 .setting-group{display:flex;flex-direction:column;gap:6px}
 .setting-group label{font-size:13px;font-weight:600;color:var(--text)}
-.input-with-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color var(--transition)}
+.input-with-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .input-with-toggle:focus-within{border-color:var(--primary)}
 #api-key-input{flex:1;border:none;padding:9px 12px;font-size:13px;outline:none;background:transparent}
 #toggle-key-btn{background:var(--bg);border:none;border-left:1px solid var(--border);padding:0 12px;cursor:pointer;font-size:16px;color:var(--text-muted)}
 .setting-hint{font-size:11px;color:var(--text-muted);line-height:1.5}
-.setting-hint.center{text-align:center}
 #radius-slider{width:100%;accent-color:var(--primary);cursor:pointer}
 .range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)}
 #max-results{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--surface);cursor:pointer;outline:none}
@@ -103,12 +100,8 @@ a{color:var(--primary)}
 </header>
 
 <div id="location-fallback" class="hidden">
-  <p>&#128205; Localisation indisponible. Entrez vos coordonnées :</p>
-  <div class="fallback-inputs">
-    <input id="lat-input" type="number" step="any" placeholder="Latitude (ex: 48.8566)" />
-    <input id="lng-input" type="number" step="any" placeholder="Longitude (ex: 2.3522)" />
-    <button id="manual-locate-btn">Rechercher</button>
-  </div>
+  <span>&#128205; Localisation refusée ou indisponible.</span>
+  <button id="use-location-btn">&#128205; Utiliser ma position</button>
 </div>
 
 <main id="app-body">
@@ -186,7 +179,22 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 async function runSearch(){if(!state.lat||!state.lng){showError('Position inconnue.');return}showSpinner();updateRadiusCircle();try{const places=await fetchNearbyPlaces();renderCards(places);renderMarkers(places)}catch(e){showError(esc(e.message))}finally{hideSpinner()}}
 
-function initGeolocation(){if(!navigator.geolocation){document.getElementById('location-fallback').classList.remove('hidden');return}navigator.geolocation.getCurrentPosition(pos=>{state.lat=pos.coords.latitude;state.lng=pos.coords.longitude;map.setView([state.lat,state.lng],14);runSearch()},()=>{document.getElementById('location-fallback').classList.remove('hidden')},{timeout:8000,maximumAge:60000})}
+function requestLocation(){
+  if(!navigator.geolocation){showError('Géolocalisation non supportée par ce navigateur.');return}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      state.lat=pos.coords.latitude;state.lng=pos.coords.longitude;
+      document.getElementById('location-fallback').classList.add('hidden');
+      map.setView([state.lat,state.lng],14);
+      runSearch();
+    },
+    err=>{
+      document.getElementById('location-fallback').classList.remove('hidden');
+      showError('Localisation refusée. Autorisez l\'accès à votre position dans les réglages Safari.');
+    },
+    {timeout:10000,maximumAge:0,enableHighAccuracy:true}
+  );
+}
 
 function openSettings(){document.getElementById('settings-drawer').classList.remove('hidden');document.getElementById('settings-overlay').classList.remove('hidden');requestAnimationFrame(()=>document.getElementById('settings-drawer').classList.add('open'));document.getElementById('api-key-input').value=state.apiKey;document.getElementById('radius-slider').value=state.radius;document.getElementById('radius-value').textContent=state.radius;document.getElementById('max-results').value=state.maxResults}
 function closeSettings(){const d=document.getElementById('settings-drawer');d.classList.remove('open');d.addEventListener('transitionend',()=>{d.classList.add('hidden');document.getElementById('settings-overlay').classList.add('hidden')},{once:true})}
@@ -201,10 +209,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('radius-slider').addEventListener('input',e=>document.getElementById('radius-value').textContent=e.target.value);
   const ki=document.getElementById('api-key-input');
   document.getElementById('toggle-key-btn').addEventListener('click',()=>{ki.type=ki.type==='password'?'text':'password'});
-  document.getElementById('manual-locate-btn').addEventListener('click',()=>{const lat=parseFloat(document.getElementById('lat-input').value);const lng=parseFloat(document.getElementById('lng-input').value);if(isNaN(lat)||isNaN(lng)){alert('Coordonnées invalides');return}state.lat=lat;state.lng=lng;map.setView([lat,lng],14);runSearch()});
-  ['lat-input','lng-input'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('manual-locate-btn').click()}));
+  document.getElementById('use-location-btn').addEventListener('click',requestLocation);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings()});
-  initGeolocation();
+  requestLocation();
 });
 </script>
 </body>
