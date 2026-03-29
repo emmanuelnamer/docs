@@ -10,7 +10,7 @@ const state = {
   lat: null,
   lng: null,
   category: 'restaurants',
-  apiKey: localStorage.getItem('localExplorer_apiKey') || '',
+  apiKey: localStorage.getItem('localExplorer_apiKey') || 'AIzaSyAz7Pkf1T5BRKLlq0Tlvz67Soit1JQOOhE',
   radius: parseInt(localStorage.getItem('localExplorer_radius') || '1500', 10),
   maxResults: parseInt(localStorage.getItem('localExplorer_maxResults') || '20', 10),
   markers: [],
