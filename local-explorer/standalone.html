@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Explorer</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+:root{--primary:#0D9373;--primary-dark:#0a7560;--bg:#f4f6f8;--surface:#fff;--border:#e2e8f0;--text:#1a202c;--text-muted:#718096;--red:#e53e3e;--yellow:#d69e2e;--shadow-sm:0 1px 3px rgba(0,0,0,.10);--shadow-md:0 4px 12px rgba(0,0,0,.12);--radius:10px;--sidebar-w:380px;--header-h:56px;--transition:.2s ease}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden}
+a{color:var(--primary)}
+.hidden{display:none!important}
+#app-header{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;box-shadow:var(--shadow-sm);z-index:100;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:8px}
+.app-logo{font-size:22px;color:var(--primary)}
+.app-title{font-size:18px;font-weight:700;color:var(--primary);white-space:nowrap}
+#category-tabs{display:flex;gap:6px;margin-left:auto}
+.tab{display:flex;align-items:center;gap:5px;padding:6px 14px;border:2px solid var(--border);border-radius:20px;background:transparent;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition);white-space:nowrap}
+.tab:hover{border-color:var(--primary);color:var(--primary)}
+.tab.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(13,147,115,.35)}
+#settings-btn{margin-left:8px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:6px;transition:background var(--transition),color var(--transition);flex-shrink:0}
+#settings-btn:hover{background:var(--bg);color:var(--primary)}
+#location-fallback{background:#fffbeb;border-bottom:1px solid #f6d860;padding:10px 16px;font-size:13px;color:#744210;flex-shrink:0}
+.fallback-inputs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.fallback-inputs input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:180px}
+.fallback-inputs button{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;cursor:pointer}
+#app-body{flex:1;display:flex;overflow:hidden;position:relative}
+#sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+#sidebar-header{padding:10px 16px;border-bottom:1px solid var(--border);min-height:40px;display:flex;align-items:center}
+#result-count{font-size:12px;color:var(--text-muted);font-weight:500}
+#sidebar-spinner{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;gap:12px;color:var(--text-muted);font-size:14px;flex:1}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#empty-state,#error-state{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;line-height:1.6}
+#error-state{color:var(--red)}
+#place-list{list-style:none;overflow-y:auto;flex:1;padding:8px;display:flex;flex-direction:column;gap:8px}
+.place-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;transition:box-shadow var(--transition),border-color var(--transition),transform var(--transition)}
+.place-card:hover{box-shadow:var(--shadow-md);border-color:var(--primary);transform:translateY(-1px)}
+.place-card.active{border-color:var(--primary);box-shadow:0 0 0 2px rgba(13,147,115,.25)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.place-name{font-weight:600;font-size:14px;color:var(--text);line-height:1.3}
+.open-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.open-badge.open{background:#c6f6d5;color:#276749}
+.open-badge.closed{background:#fed7d7;color:#9b2c2c}
+.card-meta{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.rating{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:600;color:var(--yellow)}
+.rating-count{color:var(--text-muted);font-weight:400;font-size:12px}
+.price-level{font-size:12px;color:var(--primary);font-weight:600}
+.place-address{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#map{flex:1;min-width:0}
+.marker-dot{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.leaflet-popup-content-wrapper{border-radius:var(--radius);box-shadow:var(--shadow-md)}
+.popup-content{font-family:inherit}
+.popup-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.popup-rating{font-size:13px;color:var(--yellow);margin-bottom:3px}
+.popup-address{font-size:12px;color:var(--text-muted)}
+.popup-link{font-size:12px;color:var(--primary);display:block;margin-top:4px}
+#settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1500}
+#settings-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:100vw;height:100%;background:var(--surface);box-shadow:-4px 0 20px rgba(0,0,0,.15);z-index:2000;display:flex;flex-direction:column;transition:right .3s ease;overflow-y:auto}
+#settings-drawer.open{right:0}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.drawer-header h2{font-size:17px;font-weight:700;color:var(--text)}
+#close-settings-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:background var(--transition)}
+.drawer-body{padding:20px;display:flex;flex-direction:column;gap:20px}
+.setting-group{display:flex;flex-direction:column;gap:6px}
+.setting-group label{font-size:13px;font-weight:600;color:var(--text)}
+.input-with-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color var(--transition)}
+.input-with-toggle:focus-within{border-color:var(--primary)}
+#api-key-input{flex:1;border:none;padding:9px 12px;font-size:13px;outline:none;background:transparent}
+#toggle-key-btn{background:var(--bg);border:none;border-left:1px solid var(--border);padding:0 12px;cursor:pointer;font-size:16px;color:var(--text-muted)}
+.setting-hint{font-size:11px;color:var(--text-muted);line-height:1.5}
+.setting-hint.center{text-align:center}
+#radius-slider{width:100%;accent-color:var(--primary);cursor:pointer}
+.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)}
+#max-results{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--surface);cursor:pointer;outline:none}
+.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(13,147,115,.3)}
+.btn-primary:hover{background:var(--primary-dark)}
+@media(max-width:768px){
+  .app-title{display:none}
+  .tab{padding:5px 10px;font-size:12px}
+  #app-body{flex-direction:column}
+  #sidebar{width:100%;height:44vh;border-right:none;border-top:1px solid var(--border);order:2}
+  #map{height:56vh;order:1}
+  #settings-drawer{width:100vw}
+}
+  </style>
+</head>
+<body>
+
+<header id="app-header">
+  <div class="header-left">
+    <span class="app-logo">&#9711;</span>
+    <span class="app-title">Local Explorer</span>
+  </div>
+  <nav id="category-tabs">
+    <button class="tab active" data-category="restaurants">&#127374; Restaurants</button>
+    <button class="tab" data-category="hotels">&#127976; Hotels</button>
+    <button class="tab" data-category="activities">&#127957; Activités</button>
+  </nav>
+  <button id="settings-btn" title="Paramètres">&#9881;</button>
+</header>
+
+<div id="location-fallback" class="hidden">
+  <p>&#128205; Localisation indisponible. Entrez vos coordonnées :</p>
+  <div class="fallback-inputs">
+    <input id="lat-input" type="number" step="any" placeholder="Latitude (ex: 48.8566)" />
+    <input id="lng-input" type="number" step="any" placeholder="Longitude (ex: 2.3522)" />
+    <button id="manual-locate-btn">Rechercher</button>
+  </div>
+</div>
+
+<main id="app-body">
+  <aside id="sidebar">
+    <div id="sidebar-header"><span id="result-count"></span></div>
+    <div id="sidebar-spinner" class="hidden">
+      <div class="spinner"></div>
+      <p>Recherche en cours...</p>
+    </div>
+    <p id="empty-state" class="hidden">Aucun endroit trouvé dans cette zone.</p>
+    <p id="error-state" class="hidden"></p>
+    <ul id="place-list"></ul>
+  </aside>
+  <div id="map"></div>
+</main>
+
+<div id="settings-overlay" class="hidden"></div>
+<aside id="settings-drawer" class="drawer hidden">
+  <div class="drawer-header">
+    <h2>Paramètres</h2>
+    <button id="close-settings-btn">&#10005;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="setting-group">
+      <label for="api-key-input">Clé Google Places API</label>
+      <div class="input-with-toggle">
+        <input id="api-key-input" type="password" placeholder="AIza..." autocomplete="off" />
+        <button id="toggle-key-btn" type="button">&#128065;</button>
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>Rayon : <strong id="radius-value">1500</strong> m</label>
+      <input id="radius-slider" type="range" min="500" max="5000" step="500" value="1500" />
+      <div class="range-labels"><span>500m</span><span>5km</span></div>
+    </div>
+    <div class="setting-group">
+      <label for="max-results">Nombre de résultats</label>
+      <select id="max-results">
+        <option value="10">10</option>
+        <option value="20" selected>20</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+    <button id="save-settings-btn" class="btn-primary">&#128269; Enregistrer &amp; Rechercher</button>
+  </div>
+</aside>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const state={lat:null,lng:null,category:'restaurants',apiKey:localStorage.getItem('localExplorer_apiKey')||'AIzaSyAz7Pkf1T5BRKLlq0Tlvz67Soit1JQOOhE',radius:parseInt(localStorage.getItem('localExplorer_radius')||'1500',10),maxResults:parseInt(localStorage.getItem('localExplorer_maxResults')||'20',10),markers:[],activeCardId:null};
+const CATEGORY_TYPES={restaurants:['restaurant','cafe','bar'],hotels:['lodging'],activities:['tourist_attraction','museum','park','amusement_park']};
+const MARKER_COLORS={restaurants:'#e53e3e',hotels:'#3182ce',activities:'#38a169'};
+const FIELD_MASK='places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.location,places.regularOpeningHours,places.priceLevel,places.websiteUri';
+
+const map=L.map('map',{zoomControl:true}).setView([46.603354,1.888334],5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(map);
+let radiusCircle=null;
+
+function updateRadiusCircle(){if(!state.lat)return;if(radiusCircle)map.removeLayer(radiusCircle);radiusCircle=L.circle([state.lat,state.lng],{radius:state.radius,color:'#0D9373',fillColor:'#07C983',fillOpacity:.06,weight:1.5,dashArray:'6 4'}).addTo(map)}
+function createMarkerIcon(cat){const c=MARKER_COLORS[cat]||'#0D9373';return L.divIcon({className:'',html:`<div class="marker-dot" style="background:${c}"></div>`,iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-30]})}
+function clearMarkers(){state.markers.forEach(({marker})=>map.removeLayer(marker));state.markers=[]}
+function renderMarkers(places){clearMarkers();places.forEach(p=>{if(!p.location)return;const{latitude,longitude}=p.location;const m=L.marker([latitude,longitude],{icon:createMarkerIcon(state.category)}).addTo(map);const name=p.displayName?.text||'Sans nom';const rating=p.rating?`&#11088; ${p.rating.toFixed(1)}`:'';const addr=p.formattedAddress||'';const link=p.websiteUri?`<a class="popup-link" href="${esc(p.websiteUri)}" target="_blank" rel="noopener">Voir le site &#8599;</a>`:'';m.bindPopup(`<div class="popup-content"><div class="popup-name">${esc(name)}</div>${rating?`<div class="popup-rating">${rating}</div>`:''}<div class="popup-address">${esc(addr)}</div>${link}</div>`);m.on('click',()=>highlightCard(p.id));state.markers.push({id:p.id,marker:m})})}
+function flyToPlace(p){if(!p.location)return;const{latitude,longitude}=p.location;map.flyTo([latitude,longitude],16,{animate:true,duration:.7});const f=state.markers.find(m=>m.id===p.id);if(f)setTimeout(()=>f.marker.openPopup(),750)}
+function highlightCard(id){state.activeCardId=id;document.querySelectorAll('.place-card').forEach(el=>el.classList.toggle('active',el.dataset.placeId===id));const c=document.querySelector(`.place-card[data-place-id="${id}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+async function fetchNearbyPlaces(){if(!state.apiKey){showError('Saisissez votre clé API dans les paramètres &#9881;');return[]}const body={includedTypes:CATEGORY_TYPES[state.category],maxResultCount:state.maxResults,locationRestriction:{circle:{center:{latitude:state.lat,longitude:state.lng},radius:state.radius}}};const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':state.apiKey,'X-Goog-FieldMask':FIELD_MASK},body:JSON.stringify(body)});if(!r.ok){let msg=`Erreur HTTP ${r.status}`;try{const e=await r.json();msg=e?.error?.message||msg}catch(_){}throw new Error(msg)}const d=await r.json();return d.places||[]}
+
+const PRICE={'PRICE_LEVEL_FREE':'(gratuit)','PRICE_LEVEL_INEXPENSIVE':'$','PRICE_LEVEL_MODERATE':'$$','PRICE_LEVEL_EXPENSIVE':'$$$','PRICE_LEVEL_VERY_EXPENSIVE':'$$$$'};
+function renderCards(places){const list=document.getElementById('place-list');list.innerHTML='';const count=document.getElementById('result-count');count.textContent=places.length>0?`${places.length} résultat${places.length>1?'s':''}`:'' ;if(places.length===0){document.getElementById('empty-state').classList.remove('hidden');return}document.getElementById('empty-state').classList.add('hidden');places.forEach(p=>{const li=document.createElement('li');li.className='place-card';li.dataset.placeId=p.id||'';const name=p.displayName?.text||'Sans nom';const rating=p.rating;const reviews=p.userRatingCount;const addr=p.formattedAddress||'';const isOpen=p.regularOpeningHours?.openNow;const price=p.priceLevel?PRICE[p.priceLevel]||'':'';let badge='';if(typeof isOpen==='boolean')badge=`<span class="open-badge ${isOpen?'open':'closed'}">${isOpen?'Ouvert':'Fermé'}</span>`;li.innerHTML=`<div class="card-top"><span class="place-name">${esc(name)}</span>${badge}</div><div class="card-meta">${rating?`<span class="rating">&#11088; ${rating.toFixed(1)} <span class="rating-count">(${reviews?.toLocaleString('fr')??''})</span></span>`:''} ${price?`<span class="price-level">${price}</span>`:''}</div><div class="place-address">${esc(addr)}</div>`;li.addEventListener('click',()=>{highlightCard(p.id);flyToPlace(p)});list.appendChild(li)})}
+
+function showSpinner(){document.getElementById('sidebar-spinner').classList.remove('hidden');document.getElementById('place-list').classList.add('hidden');document.getElementById('empty-state').classList.add('hidden');document.getElementById('error-state').classList.add('hidden');document.getElementById('result-count').textContent=''}
+function hideSpinner(){document.getElementById('sidebar-spinner').classList.add('hidden');document.getElementById('place-list').classList.remove('hidden')}
+function showError(msg){hideSpinner();const el=document.getElementById('error-state');el.innerHTML=`&#9888; ${msg}`;el.classList.remove('hidden');document.getElementById('place-list').innerHTML='';document.getElementById('result-count').textContent=''}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+async function runSearch(){if(!state.lat||!state.lng){showError('Position inconnue.');return}showSpinner();updateRadiusCircle();try{const places=await fetchNearbyPlaces();renderCards(places);renderMarkers(places)}catch(e){showError(esc(e.message))}finally{hideSpinner()}}
+
+function initGeolocation(){if(!navigator.geolocation){document.getElementById('location-fallback').classList.remove('hidden');return}navigator.geolocation.getCurrentPosition(pos=>{state.lat=pos.coords.latitude;state.lng=pos.coords.longitude;map.setView([state.lat,state.lng],14);runSearch()},()=>{document.getElementById('location-fallback').classList.remove('hidden')},{timeout:8000,maximumAge:60000})}
+
+function openSettings(){document.getElementById('settings-drawer').classList.remove('hidden');document.getElementById('settings-overlay').classList.remove('hidden');requestAnimationFrame(()=>document.getElementById('settings-drawer').classList.add('open'));document.getElementById('api-key-input').value=state.apiKey;document.getElementById('radius-slider').value=state.radius;document.getElementById('radius-value').textContent=state.radius;document.getElementById('max-results').value=state.maxResults}
+function closeSettings(){const d=document.getElementById('settings-drawer');d.classList.remove('open');d.addEventListener('transitionend',()=>{d.classList.add('hidden');document.getElementById('settings-overlay').classList.add('hidden')},{once:true})}
+function saveSettings(){state.apiKey=document.getElementById('api-key-input').value.trim();state.radius=parseInt(document.getElementById('radius-slider').value,10);state.maxResults=parseInt(document.getElementById('max-results').value,10);localStorage.setItem('localExplorer_apiKey',state.apiKey);localStorage.setItem('localExplorer_radius',state.radius);localStorage.setItem('localExplorer_maxResults',state.maxResults);closeSettings();if(state.lat)runSearch()}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('category-tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');state.category=b.dataset.category;if(state.lat)runSearch()});
+  document.getElementById('settings-btn').addEventListener('click',openSettings);
+  document.getElementById('close-settings-btn').addEventListener('click',closeSettings);
+  document.getElementById('settings-overlay').addEventListener('click',closeSettings);
+  document.getElementById('save-settings-btn').addEventListener('click',saveSettings);
+  document.getElementById('radius-slider').addEventListener('input',e=>document.getElementById('radius-value').textContent=e.target.value);
+  const ki=document.getElementById('api-key-input');
+  document.getElementById('toggle-key-btn').addEventListener('click',()=>{ki.type=ki.type==='password'?'text':'password'});
+  document.getElementById('manual-locate-btn').addEventListener('click',()=>{const lat=parseFloat(document.getElementById('lat-input').value);const lng=parseFloat(document.getElementById('lng-input').value);if(isNaN(lat)||isNaN(lng)){alert('Coordonnées invalides');return}state.lat=lat;state.lng=lng;map.setView([lat,lng],14);runSearch()});
+  ['lat-input','lng-input'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('manual-locate-btn').click()}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings()});
+  initGeolocation();
+});
+</script>
+</body>
+</html>
