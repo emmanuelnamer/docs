@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PreAuditFunnel from './components/preaudit/PreAuditFunnel';
 import NotEligible from './components/preaudit/NotEligible';
 import Login from './components/auth/Login';
@@ -8,7 +8,7 @@ import ManagerDashboard from './components/manager/ManagerDashboard';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<PreAuditFunnel />} />
         <Route path="/not-eligible" element={<NotEligible />} />
@@ -18,6 +18,6 @@ export default function App() {
         <Route path="/manager" element={<ManagerDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

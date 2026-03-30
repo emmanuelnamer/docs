@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function ProspectDetail({ prospectId, onBack, consultantId }: Props) {
-  const [prospect, setProspect] = useState<Prospect | undefined>(store.getProspect(prospectId));
+  const [prospect, setProspect] = useState<Prospect>(store.getProspect(prospectId)!);
   const [showAudit, setShowAudit] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [rdvForm, setRdvForm] = useState({ date: '', time: '', type: '' as string });
@@ -39,7 +39,7 @@ export default function ProspectDetail({ prospectId, onBack, consultantId }: Pro
       stage: (rdvForm.type + '-pending') as ProspectStage,
     };
     store.updateProspect(prospectId, updates);
-    setProspect(store.getProspect(prospectId));
+    setProspect(store.getProspect(prospectId)!);
     setRdvForm({ date: '', time: '', type: '' });
   }
 
@@ -51,12 +51,12 @@ export default function ProspectDetail({ prospectId, onBack, consultantId }: Pro
       stage: (type + '-done') as ProspectStage,
     };
     store.updateProspect(prospectId, updates);
-    setProspect(store.getProspect(prospectId));
+    setProspect(store.getProspect(prospectId)!);
   }
 
   function markConverted() {
     store.updateProspect(prospectId, { stage: 'converted' });
-    setProspect(store.getProspect(prospectId));
+    setProspect(store.getProspect(prospectId)!);
   }
 
   function shareReport() {
@@ -78,7 +78,7 @@ export default function ProspectDetail({ prospectId, onBack, consultantId }: Pro
         prospect={prospect}
         consultantId={consultantId}
         existingAudit={audit}
-        onBack={() => { setShowAudit(false); setProspect(store.getProspect(prospectId)); }}
+        onBack={() => { setShowAudit(false); setProspect(store.getProspect(prospectId)!); }}
       />
     );
   }
@@ -88,7 +88,7 @@ export default function ProspectDetail({ prospectId, onBack, consultantId }: Pro
       <ReportGenerator
         prospect={prospect}
         audit={audit!}
-        onBack={() => { setShowReport(false); setProspect(store.getProspect(prospectId)); }}
+        onBack={() => { setShowReport(false); setProspect(store.getProspect(prospectId)!); }}
       />
     );
   }
@@ -307,7 +307,7 @@ export default function ProspectDetail({ prospectId, onBack, consultantId }: Pro
             )}
 
             {/* Convert button */}
-            {prospect.stage === 'rdv3-done' && prospect.stage !== 'converted' && (
+            {prospect.stage === 'rdv3-done' && (
               <button
                 onClick={markConverted}
                 className="mt-4 w-full text-sm px-4 py-2 rounded-lg font-bold text-white"
