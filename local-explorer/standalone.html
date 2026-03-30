@@ -10,33 +10,38 @@
 html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 .hidden{display:none!important}
 
-/* ── MAP full screen ── */
 #map{position:fixed;inset:0;z-index:0}
 
-/* ── OVERLAY wrapper ── */
-#overlay{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;padding:16px 16px 0}
+#overlay{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;padding:52px 16px 0}
 
-/* ── TOP BAR ── */
 #top-bar{pointer-events:all;display:flex;align-items:center;gap:10px;margin-bottom:12px}
-#app-title{font-size:26px;font-weight:900;background:linear-gradient(135deg,#FF6B35,#E63946,#6C63FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex:1;letter-spacing:-0.5px}
-#locate-btn{background:#fff;border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px;white-space:nowrap}
-#locate-btn:active{transform:scale(.97)}
+#app-title{font-size:26px;font-weight:900;background:linear-gradient(135deg,#FF6B35,#E63946,#6C63FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex:1;letter-spacing:-.5px}
+#locate-btn{background:#fff;border:none;border-radius:50px;padding:8px 14px;font-size:13px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.15);white-space:nowrap}
 #settings-btn{background:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;color:#555;flex-shrink:0}
 
-/* ── SEARCH BAR ── */
-#search-bar{pointer-events:all;background:#fff;border-radius:16px;padding:12px 16px;box-shadow:0 2px 16px rgba(0,0,0,.12);display:flex;align-items:center;gap:10px;margin-bottom:12px}
-#search-bar span{font-size:18px}
-#search-bar p{font-size:15px;color:#aaa}
+/* ── SEARCH ── */
+#search-wrap{pointer-events:all;position:relative;margin-bottom:12px}
+#search-input-row{background:#fff;border-radius:16px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,.12);display:flex;align-items:center;gap:10px;height:50px}
+#search-input-row span{font-size:18px;flex-shrink:0}
+#search-input{flex:1;border:none;outline:none;font-size:15px;color:#333;background:transparent;min-width:0}
+#search-input::placeholder{color:#aaa}
+#clear-search{background:none;border:none;font-size:18px;color:#bbb;cursor:pointer;padding:4px;flex-shrink:0}
+#suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.15);overflow:hidden;z-index:50}
+.suggestion{padding:12px 16px;cursor:pointer;font-size:14px;color:#333;border-bottom:1px solid #f5f5f5;display:flex;align-items:flex-start;gap:10px}
+.suggestion:last-child{border-bottom:none}
+.suggestion:active,.suggestion:hover{background:#f8f8f8}
+.sug-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.sug-text{min-width:0}
+.sug-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sug-detail{font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── CATEGORIES ── */
-#categories-wrap{pointer-events:all;margin-bottom:0}
+#categories-wrap{pointer-events:all}
 #categories-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 #categories-scroll::-webkit-scrollbar{display:none}
-.cat-btn{flex-shrink:0;border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:transform .15s,box-shadow .15s;opacity:.85}
+.cat-btn{flex-shrink:0;border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.85;transition:transform .15s,opacity .15s}
 .cat-btn.active{opacity:1;transform:scale(1.06);box-shadow:0 4px 16px rgba(0,0,0,.25)}
-.cat-btn:active{transform:scale(.96)}
 
-/* ── LOCATION ERROR ── */
 #loc-error{pointer-events:all;background:#fffbeb;border:1px solid #f6d860;border-radius:12px;padding:10px 14px;font-size:13px;color:#744210;display:flex;align-items:center;gap:10px;margin-top:8px}
 #retry-loc{background:#0D9373;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
 
@@ -46,7 +51,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 #sheet-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto 0}
 #sheet-header{padding:12px 20px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 #sheet-title{font-size:16px;font-weight:700;color:#1a1a2e}
-#sheet-count{font-size:13px;color:#888;font-weight:500}
 #close-sheet-btn{background:none;border:none;font-size:20px;color:#aaa;cursor:pointer;padding:4px}
 #sheet-spinner{display:flex;align-items:center;justify-content:center;gap:12px;padding:30px;color:#888;font-size:14px}
 .spinner{width:28px;height:28px;border:3px solid #eee;border-top-color:#0D9373;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
@@ -54,15 +58,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 #sheet-empty{text-align:center;padding:30px 20px;color:#aaa;font-size:14px}
 #place-list{overflow-y:auto;padding:0 12px 20px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 
-/* ── PLACE CARD ── */
-.place-card{background:#fff;border:1.5px solid #f0f0f0;border-radius:16px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;gap:14px;align-items:flex-start}
-.place-card:active{transform:scale(.98)}
-.place-card.active{border-color:var(--cat-color,#0D9373);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
-.card-emoji{font-size:28px;flex-shrink:0;width:48px;height:48px;background:#f8f8f8;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.place-card{background:#fff;border:1.5px solid #f0f0f0;border-radius:16px;padding:14px 16px;cursor:pointer;display:flex;gap:14px;align-items:flex-start;transition:border-color .15s}
+.place-card.active{border-color:var(--cat-color,#0D9373)}
+.card-emoji{font-size:26px;flex-shrink:0;width:46px;height:46px;background:#f8f8f8;border-radius:12px;display:flex;align-items:center;justify-content:center}
 .card-body{flex:1;min-width:0}
 .place-name{font-weight:700;font-size:15px;color:#1a1a2e;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-.rating{font-size:13px;font-weight:600;color:#F59E0B;display:flex;align-items:center;gap:2px}
+.rating{font-size:13px;font-weight:600;color:#F59E0B}
 .rating-count{color:#aaa;font-weight:400;font-size:12px}
 .open-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
 .open-badge.open{background:#D1FAE5;color:#065F46}
@@ -70,15 +72,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .price{font-size:12px;color:#888;font-weight:600}
 .place-address{font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── POPUP ── */
-.leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:none}
+.leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
 .leaflet-popup-tip{display:none}
 .popup-inner{font-family:inherit}
 .popup-name{font-weight:700;font-size:14px;color:#1a1a2e;margin-bottom:3px}
 .popup-rating{font-size:13px;color:#F59E0B;margin-bottom:2px}
 .popup-addr{font-size:12px;color:#888}
 
-/* ── SETTINGS DRAWER ── */
 #settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}
 #settings-drawer{position:fixed;bottom:0;left:0;right:0;z-index:40;background:#fff;border-radius:24px 24px 0 0;padding:0 0 40px;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
 #settings-drawer.open{transform:translateY(0)}
@@ -108,9 +108,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
     <button id="settings-btn">⚙️</button>
   </div>
 
-  <div id="search-bar">
-    <span>🔍</span>
-    <p>Rechercher un endroit...</p>
+  <div id="search-wrap">
+    <div id="search-input-row">
+      <span>🔍</span>
+      <input id="search-input" type="text" placeholder="Rechercher une adresse, un lieu..." autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button id="clear-search" class="hidden">✕</button>
+    </div>
+    <div id="suggestions" class="hidden"></div>
   </div>
 
   <div id="categories-wrap">
@@ -123,15 +127,12 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   </div>
 </div>
 
-<!-- Bottom sheet -->
 <div id="bottom-sheet">
   <div id="sheet-handle"></div>
   <div id="sheet-header">
-    <div>
-      <div id="sheet-title">Résultats</div>
-    </div>
+    <div id="sheet-title">Résultats</div>
     <div style="display:flex;align-items:center;gap:8px">
-      <span id="sheet-count"></span>
+      <span id="sheet-count" style="font-size:13px;color:#888"></span>
       <button id="close-sheet-btn">✕</button>
     </div>
   </div>
@@ -140,7 +141,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   <ul id="place-list"></ul>
 </div>
 
-<!-- Settings -->
 <div id="settings-overlay" class="hidden"></div>
 <div id="settings-drawer">
   <div class="drawer-handle"></div>
@@ -172,7 +172,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── CATEGORIES ──
 const CATS=[
   {id:'restaurant',label:'Restaurant',emoji:'🍽️',color:'#FF6B35',types:['restaurant']},
   {id:'bar',label:'Bar',emoji:'🍷',color:'#E63946',types:['bar']},
@@ -185,52 +184,39 @@ const CATS=[
   {id:'promenade',label:'Promenade',emoji:'🚶',color:'#1ABC9C',types:['tourist_attraction']},
   {id:'viewpoint',label:'Point de vue',emoji:'👁️',color:'#2C3E50',types:['observation_deck','scenic_point']},
 ];
-
 const PRICE={'PRICE_LEVEL_FREE':'Gratuit','PRICE_LEVEL_INEXPENSIVE':'$','PRICE_LEVEL_MODERATE':'$$','PRICE_LEVEL_EXPENSIVE':'$$$','PRICE_LEVEL_VERY_EXPENSIVE':'$$$$'};
 const FIELD_MASK='places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.location,places.regularOpeningHours,places.priceLevel,places.websiteUri';
 
-// ── STATE ──
-const S={
-  lat:null,lng:null,cat:null,
-  apiKey:localStorage.getItem('le_key')||'AIzaSyAz7Pkf1T5BRKLlq0Tlvz67Soit1JQOOhE',
-  radius:parseInt(localStorage.getItem('le_radius')||'1500',10),
-  maxResults:parseInt(localStorage.getItem('le_max')||'20',10),
-  markers:[],userMarker:null
-};
+const S={lat:null,lng:null,cat:null,apiKey:localStorage.getItem('le_key')||'AIzaSyAz7Pkf1T5BRKLlq0Tlvz67Soit1JQOOhE',radius:parseInt(localStorage.getItem('le_radius')||'1500',10),maxResults:parseInt(localStorage.getItem('le_max')||'20',10),markers:[],userMarker:null,searchPin:null};
 
-// ── MAP ──
-const map=L.map('map',{zoomControl:false,attributionControl:true}).setView([46.6,1.88],5);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains:'abcd',maxZoom:20
-}).addTo(map);
+// MAP
+const map=L.map('map',{zoomControl:false}).setView([46.6,1.88],5);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OSM &copy; CARTO',subdomains:'abcd',maxZoom:20}).addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
 
 let radiusCircle=null;
-function setUserPos(lat,lng){
+function setUserPos(lat,lng,zoom=15){
   S.lat=lat;S.lng=lng;
-  map.setView([lat,lng],15);
+  map.setView([lat,lng],zoom);
   if(S.userMarker)map.removeLayer(S.userMarker);
-  S.userMarker=L.circleMarker([lat,lng],{radius:10,fillColor:'#4A90E2',color:'#fff',weight:3,fillOpacity:1,className:'user-dot'}).addTo(map);
+  S.userMarker=L.circleMarker([lat,lng],{radius:10,fillColor:'#4A90E2',color:'#fff',weight:3,fillOpacity:1}).addTo(map);
   if(radiusCircle)map.removeLayer(radiusCircle);
   radiusCircle=L.circle([lat,lng],{radius:S.radius,color:'#4A90E2',fillColor:'#4A90E2',fillOpacity:.06,weight:1,dashArray:'5 4'}).addTo(map);
 }
 
-// ── MARKERS ──
+// MARKERS
 function clearMarkers(){S.markers.forEach(({m})=>map.removeLayer(m));S.markers=[]}
 function addMarker(p,cat){
   const{latitude:lat,longitude:lng}=p.location;
   const icon=L.divIcon({className:'',html:`<div style="width:34px;height:34px;border-radius:50%;background:${cat.color};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:16px">${cat.emoji}</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-20]});
   const m=L.marker([lat,lng],{icon}).addTo(map);
   const name=p.displayName?.text||'?';
-  const rating=p.rating?`⭐ ${p.rating.toFixed(1)}`:'';
-  const addr=p.formattedAddress||'';
-  m.bindPopup(`<div class="popup-inner"><div class="popup-name">${esc(name)}</div>${rating?`<div class="popup-rating">${rating}</div>`:''}<div class="popup-addr">${esc(addr)}</div></div>`,{maxWidth:220});
+  m.bindPopup(`<div class="popup-inner"><div class="popup-name">${esc(name)}</div>${p.rating?`<div class="popup-rating">⭐ ${p.rating.toFixed(1)}</div>`:''}<div class="popup-addr">${esc(p.formattedAddress||'')}</div></div>`,{maxWidth:220});
   m.on('click',()=>highlightCard(p.id));
   S.markers.push({id:p.id,m});
 }
 
-// ── CARDS ──
+// CARDS
 function highlightCard(id){
   document.querySelectorAll('.place-card').forEach(el=>el.classList.toggle('active',el.dataset.pid===id));
   const c=document.querySelector(`.place-card[data-pid="${id}"]`);
@@ -243,74 +229,92 @@ function flyTo(p){
   if(f)setTimeout(()=>f.m.openPopup(),900);
 }
 function renderCards(places,cat){
-  const list=document.getElementById('place-list');
-  list.innerHTML='';
+  const list=document.getElementById('place-list');list.innerHTML='';
   document.getElementById('sheet-count').textContent=`${places.length} résultat${places.length>1?'s':''}`;
   if(!places.length){document.getElementById('sheet-empty').classList.remove('hidden');return}
   document.getElementById('sheet-empty').classList.add('hidden');
   places.forEach(p=>{
-    const li=document.createElement('li');
-    li.className='place-card';li.dataset.pid=p.id||'';
+    const li=document.createElement('li');li.className='place-card';li.dataset.pid=p.id||'';
     li.style.setProperty('--cat-color',cat.color);
-    const name=p.displayName?.text||'Sans nom';
-    const rating=p.rating;const reviews=p.userRatingCount;
-    const addr=p.formattedAddress||'';
     const isOpen=p.regularOpeningHours?.openNow;
-    const price=p.priceLevel?PRICE[p.priceLevel]||'':'';
     let badge='';if(typeof isOpen==='boolean')badge=`<span class="open-badge ${isOpen?'open':'closed'}">${isOpen?'Ouvert':'Fermé'}</span>`;
-    li.innerHTML=`<div class="card-emoji">${cat.emoji}</div><div class="card-body"><div class="place-name">${esc(name)}</div><div class="card-meta">${rating?`<span class="rating">⭐ ${rating.toFixed(1)} <span class="rating-count">(${reviews?.toLocaleString('fr')??''})</span></span>`:''}${badge}${price?`<span class="price">${price}</span>`:''}</div><div class="place-address">${esc(addr)}</div></div>`;
+    const price=p.priceLevel?PRICE[p.priceLevel]||'':'';
+    li.innerHTML=`<div class="card-emoji">${cat.emoji}</div><div class="card-body"><div class="place-name">${esc(p.displayName?.text||'Sans nom')}</div><div class="card-meta">${p.rating?`<span class="rating">⭐ ${p.rating.toFixed(1)} <span class="rating-count">(${p.userRatingCount?.toLocaleString('fr')??''})</span></span>`:''}${badge}${price?`<span class="price">${price}</span>`:''}</div><div class="place-address">${esc(p.formattedAddress||'')}</div></div>`;
     li.addEventListener('click',()=>{highlightCard(p.id);flyTo(p)});
     list.appendChild(li);
   });
 }
 
-// ── API ──
+// API
 async function fetchPlaces(cat){
-  const body={includedTypes:cat.types,maxResultCount:S.maxResults,locationRestriction:{circle:{center:{latitude:S.lat,longitude:S.lng},radius:S.radius}}};
-  const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':S.apiKey,'X-Goog-FieldMask':FIELD_MASK},body:JSON.stringify(body)});
+  const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':S.apiKey,'X-Goog-FieldMask':FIELD_MASK},body:JSON.stringify({includedTypes:cat.types,maxResultCount:S.maxResults,locationRestriction:{circle:{center:{latitude:S.lat,longitude:S.lng},radius:S.radius}}})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${r.status}`)}
   return(await r.json()).places||[];
 }
 
-// ── SEARCH ──
+// SEARCH FLOW
 async function runSearch(cat){
   if(!S.lat){showLocError();return}
-  S.cat=cat;
-  openSheet();
-  showSheetSpinner(true);
-  clearMarkers();
+  S.cat=cat;openSheet();showSheetSpinner(true);clearMarkers();
   document.getElementById('sheet-title').textContent=`${cat.emoji} ${cat.label}`;
   document.getElementById('place-list').innerHTML='';
   document.getElementById('sheet-count').textContent='';
   document.getElementById('sheet-empty').classList.add('hidden');
-  try{
-    const places=await fetchPlaces(cat);
-    places.forEach(p=>addMarker(p,cat));
-    renderCards(places,cat);
-  }catch(e){
-    document.getElementById('sheet-empty').textContent=`⚠️ ${e.message}`;
-    document.getElementById('sheet-empty').classList.remove('hidden');
-  }finally{showSheetSpinner(false)}
+  try{const places=await fetchPlaces(cat);places.forEach(p=>addMarker(p,cat));renderCards(places,cat)}
+  catch(e){document.getElementById('sheet-empty').textContent=`⚠️ ${e.message}`;document.getElementById('sheet-empty').classList.remove('hidden')}
+  finally{showSheetSpinner(false)}
 }
 
-// ── SHEET ──
+// SHEET
 function openSheet(){document.getElementById('bottom-sheet').classList.add('open')}
 function closeSheet(){document.getElementById('bottom-sheet').classList.remove('open')}
 function showSheetSpinner(v){document.getElementById('sheet-spinner').classList.toggle('hidden',!v);document.getElementById('place-list').classList.toggle('hidden',v)}
 
-// ── GEOLOCATION ──
+// GEOLOCATION
 function requestLocation(){
   document.getElementById('loc-error').classList.add('hidden');
   if(!navigator.geolocation){showLocError();return}
   navigator.geolocation.getCurrentPosition(
     pos=>{setUserPos(pos.coords.latitude,pos.coords.longitude);if(S.cat)runSearch(S.cat)},
-    ()=>showLocError(),
-    {timeout:10000,enableHighAccuracy:true}
+    ()=>showLocError(),{timeout:10000,enableHighAccuracy:true}
   );
 }
 function showLocError(){document.getElementById('loc-error').classList.remove('hidden')}
 
-// ── SETTINGS ──
+// ADDRESS SEARCH (Nominatim)
+let searchTimer=null;
+async function geocode(q){
+  const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&accept-language=fr&addressdetails=1`;
+  const r=await fetch(url,{headers:{'Accept-Language':'fr'}});
+  return r.ok?await r.json():[];
+}
+function showSuggestions(results){
+  const box=document.getElementById('suggestions');
+  if(!results.length){box.classList.add('hidden');return}
+  box.innerHTML='';
+  results.forEach(r=>{
+    const parts=r.display_name.split(',');
+    const name=parts[0].trim();
+    const detail=parts.slice(1,3).join(',').trim();
+    const div=document.createElement('div');div.className='suggestion';
+    div.innerHTML=`<span class="sug-icon">📍</span><div class="sug-text"><div class="sug-name">${esc(name)}</div><div class="sug-detail">${esc(detail)}</div></div>`;
+    div.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      selectLocation(parseFloat(r.lat),parseFloat(r.lon),name);
+    });
+    box.appendChild(div);
+  });
+  box.classList.remove('hidden');
+}
+function selectLocation(lat,lng,label){
+  hideSuggestions();
+  document.getElementById('search-input').value=label;
+  setUserPos(lat,lng,14);
+  if(S.cat)runSearch(S.cat);
+}
+function hideSuggestions(){document.getElementById('suggestions').classList.add('hidden')}
+
+// SETTINGS
 function openSettings(){
   document.getElementById('api-key-input').value=S.apiKey;
   document.getElementById('radius-slider').value=S.radius;
@@ -319,41 +323,47 @@ function openSettings(){
   document.getElementById('settings-drawer').classList.add('open');
   document.getElementById('settings-overlay').classList.remove('hidden');
 }
-function closeSettings(){
-  document.getElementById('settings-drawer').classList.remove('open');
-  document.getElementById('settings-overlay').classList.add('hidden');
-}
+function closeSettings(){document.getElementById('settings-drawer').classList.remove('open');document.getElementById('settings-overlay').classList.add('hidden')}
 function saveSettings(){
   S.apiKey=document.getElementById('api-key-input').value.trim();
   S.radius=parseInt(document.getElementById('radius-slider').value,10);
   S.maxResults=parseInt(document.getElementById('max-results').value,10);
-  localStorage.setItem('le_key',S.apiKey);
-  localStorage.setItem('le_radius',S.radius);
-  localStorage.setItem('le_max',S.maxResults);
-  closeSettings();
-  if(S.lat&&S.cat)runSearch(S.cat);
+  localStorage.setItem('le_key',S.apiKey);localStorage.setItem('le_radius',S.radius);localStorage.setItem('le_max',S.maxResults);
+  closeSettings();if(S.lat&&S.cat)runSearch(S.cat);
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
-// ── INIT ──
+// INIT
 document.addEventListener('DOMContentLoaded',()=>{
-  // Build category pills
+  // Category pills
   const scroll=document.getElementById('categories-scroll');
   CATS.forEach(cat=>{
-    const btn=document.createElement('button');
-    btn.className='cat-btn';
-    btn.style.background=cat.color;
+    const btn=document.createElement('button');btn.className='cat-btn';btn.style.background=cat.color;
     btn.innerHTML=`${cat.emoji} ${cat.label}`;
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      runSearch(cat);
-    });
+    btn.addEventListener('click',()=>{document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');runSearch(cat)});
     scroll.appendChild(btn);
   });
 
-  document.getElementById('locate-btn').addEventListener('click',requestLocation);
+  // Search input
+  const inp=document.getElementById('search-input');
+  const clearBtn=document.getElementById('clear-search');
+  inp.addEventListener('input',()=>{
+    const q=inp.value.trim();
+    clearBtn.classList.toggle('hidden',!q);
+    clearTimeout(searchTimer);
+    if(q.length<2){hideSuggestions();return}
+    searchTimer=setTimeout(async()=>{
+      try{const res=await geocode(q);showSuggestions(res)}catch(_){hideSuggestions()}
+    },350);
+  });
+  inp.addEventListener('focus',()=>{if(inp.value.trim().length>=2)document.getElementById('suggestions').classList.remove('hidden')});
+  inp.addEventListener('blur',()=>setTimeout(hideSuggestions,150));
+  clearBtn.addEventListener('click',()=>{inp.value='';clearBtn.classList.add('hidden');hideSuggestions();inp.focus()});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.trim().length>=2){clearTimeout(searchTimer);geocode(inp.value.trim()).then(res=>{if(res[0])selectLocation(parseFloat(res[0].lat),parseFloat(res[0].lon),res[0].display_name.split(',')[0])})}});
+
+  // Buttons
+  document.getElementById('locate-btn').addEventListener('click',()=>{inp.value='';clearBtn.classList.add('hidden');hideSuggestions();requestLocation()});
   document.getElementById('settings-btn').addEventListener('click',openSettings);
   document.getElementById('settings-overlay').addEventListener('click',closeSettings);
   document.getElementById('save-settings-btn').addEventListener('click',saveSettings);
@@ -362,6 +372,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('radius-slider').addEventListener('input',e=>document.getElementById('radius-value').textContent=e.target.value);
   const ki=document.getElementById('api-key-input');
   document.getElementById('toggle-key-btn').addEventListener('click',()=>{ki.type=ki.type==='password'?'text':'password'});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSettings();hideSuggestions()}});
 
   requestLocation();
 });
