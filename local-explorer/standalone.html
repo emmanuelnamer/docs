@@ -1,216 +1,368 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Local Explorer</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-:root{--primary:#0D9373;--primary-dark:#0a7560;--bg:#f4f6f8;--surface:#fff;--border:#e2e8f0;--text:#1a202c;--text-muted:#718096;--red:#e53e3e;--yellow:#d69e2e;--shadow-sm:0 1px 3px rgba(0,0,0,.10);--shadow-md:0 4px 12px rgba(0,0,0,.12);--radius:10px;--sidebar-w:380px;--header-h:56px;--transition:.2s ease}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Local Explorer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden}
-a{color:var(--primary)}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 .hidden{display:none!important}
-#app-header{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;box-shadow:var(--shadow-sm);z-index:100;flex-shrink:0}
-.header-left{display:flex;align-items:center;gap:8px}
-.app-logo{font-size:22px;color:var(--primary)}
-.app-title{font-size:18px;font-weight:700;color:var(--primary);white-space:nowrap}
-#category-tabs{display:flex;gap:6px;margin-left:auto}
-.tab{display:flex;align-items:center;gap:5px;padding:6px 14px;border:2px solid var(--border);border-radius:20px;background:transparent;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition);white-space:nowrap}
-.tab:hover{border-color:var(--primary);color:var(--primary)}
-.tab.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(13,147,115,.35)}
-#settings-btn{margin-left:8px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:6px;transition:background var(--transition),color var(--transition);flex-shrink:0}
-#settings-btn:hover{background:var(--bg);color:var(--primary)}
-#location-fallback{background:#fffbeb;border-bottom:1px solid #f6d860;padding:12px 16px;font-size:13px;color:#744210;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#use-location-btn{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
-#app-body{flex:1;display:flex;overflow:hidden;position:relative}
-#sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
-#sidebar-header{padding:10px 16px;border-bottom:1px solid var(--border);min-height:40px;display:flex;align-items:center}
-#result-count{font-size:12px;color:var(--text-muted);font-weight:500}
-#sidebar-spinner{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;gap:12px;color:var(--text-muted);font-size:14px;flex:1}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+
+/* ── MAP full screen ── */
+#map{position:fixed;inset:0;z-index:0}
+
+/* ── OVERLAY wrapper ── */
+#overlay{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;padding:16px 16px 0}
+
+/* ── TOP BAR ── */
+#top-bar{pointer-events:all;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+#app-title{font-size:26px;font-weight:900;background:linear-gradient(135deg,#FF6B35,#E63946,#6C63FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex:1;letter-spacing:-0.5px}
+#locate-btn{background:#fff;border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:600;color:#333;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px;white-space:nowrap}
+#locate-btn:active{transform:scale(.97)}
+#settings-btn{background:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;color:#555;flex-shrink:0}
+
+/* ── SEARCH BAR ── */
+#search-bar{pointer-events:all;background:#fff;border-radius:16px;padding:12px 16px;box-shadow:0 2px 16px rgba(0,0,0,.12);display:flex;align-items:center;gap:10px;margin-bottom:12px}
+#search-bar span{font-size:18px}
+#search-bar p{font-size:15px;color:#aaa}
+
+/* ── CATEGORIES ── */
+#categories-wrap{pointer-events:all;margin-bottom:0}
+#categories-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#categories-scroll::-webkit-scrollbar{display:none}
+.cat-btn{flex-shrink:0;border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:transform .15s,box-shadow .15s;opacity:.85}
+.cat-btn.active{opacity:1;transform:scale(1.06);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.cat-btn:active{transform:scale(.96)}
+
+/* ── LOCATION ERROR ── */
+#loc-error{pointer-events:all;background:#fffbeb;border:1px solid #f6d860;border-radius:12px;padding:10px 14px;font-size:13px;color:#744210;display:flex;align-items:center;gap:10px;margin-top:8px}
+#retry-loc{background:#0D9373;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* ── BOTTOM SHEET ── */
+#bottom-sheet{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -4px 30px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:70vh;display:flex;flex-direction:column}
+#bottom-sheet.open{transform:translateY(0)}
+#sheet-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto 0}
+#sheet-header{padding:12px 20px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#sheet-title{font-size:16px;font-weight:700;color:#1a1a2e}
+#sheet-count{font-size:13px;color:#888;font-weight:500}
+#close-sheet-btn{background:none;border:none;font-size:20px;color:#aaa;cursor:pointer;padding:4px}
+#sheet-spinner{display:flex;align-items:center;justify-content:center;gap:12px;padding:30px;color:#888;font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid #eee;border-top-color:#0D9373;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-#empty-state,#error-state{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;line-height:1.6}
-#error-state{color:var(--red)}
-#place-list{list-style:none;overflow-y:auto;flex:1;padding:8px;display:flex;flex-direction:column;gap:8px}
-.place-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;transition:box-shadow var(--transition),border-color var(--transition),transform var(--transition)}
-.place-card:hover{box-shadow:var(--shadow-md);border-color:var(--primary);transform:translateY(-1px)}
-.place-card.active{border-color:var(--primary);box-shadow:0 0 0 2px rgba(13,147,115,.25)}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
-.place-name{font-weight:600;font-size:14px;color:var(--text);line-height:1.3}
-.open-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0}
-.open-badge.open{background:#c6f6d5;color:#276749}
-.open-badge.closed{background:#fed7d7;color:#9b2c2c}
-.card-meta{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
-.rating{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:600;color:var(--yellow)}
-.rating-count{color:var(--text-muted);font-weight:400;font-size:12px}
-.price-level{font-size:12px;color:var(--primary);font-weight:600}
-.place-address{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#map{flex:1;min-width:0}
-.marker-dot{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.leaflet-popup-content-wrapper{border-radius:var(--radius);box-shadow:var(--shadow-md)}
-.popup-content{font-family:inherit}
-.popup-name{font-weight:700;font-size:14px;margin-bottom:4px}
-.popup-rating{font-size:13px;color:var(--yellow);margin-bottom:3px}
-.popup-address{font-size:12px;color:var(--text-muted)}
-.popup-link{font-size:12px;color:var(--primary);display:block;margin-top:4px}
-#settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1500}
-#settings-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:100vw;height:100%;background:var(--surface);box-shadow:-4px 0 20px rgba(0,0,0,.15);z-index:2000;display:flex;flex-direction:column;transition:right .3s ease;overflow-y:auto}
-#settings-drawer.open{right:0}
-.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
-.drawer-header h2{font-size:17px;font-weight:700;color:var(--text)}
-#close-settings-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px}
-.drawer-body{padding:20px;display:flex;flex-direction:column;gap:20px}
-.setting-group{display:flex;flex-direction:column;gap:6px}
-.setting-group label{font-size:13px;font-weight:600;color:var(--text)}
-.input-with-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.input-with-toggle:focus-within{border-color:var(--primary)}
-#api-key-input{flex:1;border:none;padding:9px 12px;font-size:13px;outline:none;background:transparent}
-#toggle-key-btn{background:var(--bg);border:none;border-left:1px solid var(--border);padding:0 12px;cursor:pointer;font-size:16px;color:var(--text-muted)}
-.setting-hint{font-size:11px;color:var(--text-muted);line-height:1.5}
-#radius-slider{width:100%;accent-color:var(--primary);cursor:pointer}
-.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)}
-#max-results{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--surface);cursor:pointer;outline:none}
-.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(13,147,115,.3)}
-.btn-primary:hover{background:var(--primary-dark)}
-@media(max-width:768px){
-  .app-title{display:none}
-  .tab{padding:5px 10px;font-size:12px}
-  #app-body{flex-direction:column}
-  #sidebar{width:100%;height:44vh;border-right:none;border-top:1px solid var(--border);order:2}
-  #map{height:56vh;order:1}
-  #settings-drawer{width:100vw}
-}
-  </style>
+#sheet-empty{text-align:center;padding:30px 20px;color:#aaa;font-size:14px}
+#place-list{overflow-y:auto;padding:0 12px 20px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+
+/* ── PLACE CARD ── */
+.place-card{background:#fff;border:1.5px solid #f0f0f0;border-radius:16px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;gap:14px;align-items:flex-start}
+.place-card:active{transform:scale(.98)}
+.place-card.active{border-color:var(--cat-color,#0D9373);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.card-emoji{font-size:28px;flex-shrink:0;width:48px;height:48px;background:#f8f8f8;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.card-body{flex:1;min-width:0}
+.place-name{font-weight:700;font-size:15px;color:#1a1a2e;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.rating{font-size:13px;font-weight:600;color:#F59E0B;display:flex;align-items:center;gap:2px}
+.rating-count{color:#aaa;font-weight:400;font-size:12px}
+.open-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.open-badge.open{background:#D1FAE5;color:#065F46}
+.open-badge.closed{background:#FEE2E2;color:#991B1B}
+.price{font-size:12px;color:#888;font-weight:600}
+.place-address{font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── POPUP ── */
+.leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:none}
+.leaflet-popup-tip{display:none}
+.popup-inner{font-family:inherit}
+.popup-name{font-weight:700;font-size:14px;color:#1a1a2e;margin-bottom:3px}
+.popup-rating{font-size:13px;color:#F59E0B;margin-bottom:2px}
+.popup-addr{font-size:12px;color:#888}
+
+/* ── SETTINGS DRAWER ── */
+#settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}
+#settings-drawer{position:fixed;bottom:0;left:0;right:0;z-index:40;background:#fff;border-radius:24px 24px 0 0;padding:0 0 40px;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
+#settings-drawer.open{transform:translateY(0)}
+.drawer-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto}
+.drawer-body{padding:0 20px 20px;display:flex;flex-direction:column;gap:20px}
+.drawer-title{font-size:18px;font-weight:800;color:#1a1a2e;margin-bottom:4px}
+.setting-group{display:flex;flex-direction:column;gap:8px}
+.setting-label{font-size:13px;font-weight:600;color:#555}
+.key-wrap{display:flex;border:1.5px solid #eee;border-radius:12px;overflow:hidden}
+.key-wrap:focus-within{border-color:#0D9373}
+#api-key-input{flex:1;border:none;padding:11px 14px;font-size:13px;outline:none;background:transparent}
+#toggle-key-btn{background:#f8f8f8;border:none;border-left:1.5px solid #eee;padding:0 14px;cursor:pointer;font-size:16px;color:#888}
+#radius-slider{width:100%;accent-color:#0D9373;cursor:pointer}
+.range-labels{display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:2px}
+#max-results{border:1.5px solid #eee;border-radius:12px;padding:10px 14px;font-size:13px;background:#fff;width:100%;cursor:pointer;outline:none}
+.save-btn{background:linear-gradient(135deg,#0D9373,#07C983);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(13,147,115,.4)}
+</style>
 </head>
 <body>
 
-<header id="app-header">
-  <div class="header-left">
-    <span class="app-logo">&#9711;</span>
-    <span class="app-title">Local Explorer</span>
-  </div>
-  <nav id="category-tabs">
-    <button class="tab active" data-category="restaurants">&#127374; Restaurants</button>
-    <button class="tab" data-category="hotels">&#127976; Hotels</button>
-    <button class="tab" data-category="activities">&#127957; Activités</button>
-  </nav>
-  <button id="settings-btn" title="Paramètres">&#9881;</button>
-</header>
+<div id="map"></div>
 
-<div id="location-fallback" class="hidden">
-  <span>&#128205; Localisation refusée ou indisponible.</span>
-  <button id="use-location-btn">&#128205; Utiliser ma position</button>
+<div id="overlay">
+  <div id="top-bar">
+    <span id="app-title">Explore</span>
+    <button id="locate-btn">📍 Autour de moi</button>
+    <button id="settings-btn">⚙️</button>
+  </div>
+
+  <div id="search-bar">
+    <span>🔍</span>
+    <p>Rechercher un endroit...</p>
+  </div>
+
+  <div id="categories-wrap">
+    <div id="categories-scroll"></div>
+  </div>
+
+  <div id="loc-error" class="hidden">
+    <span>📍 Localisation indisponible</span>
+    <button id="retry-loc">Réessayer</button>
+  </div>
 </div>
 
-<main id="app-body">
-  <aside id="sidebar">
-    <div id="sidebar-header"><span id="result-count"></span></div>
-    <div id="sidebar-spinner" class="hidden">
-      <div class="spinner"></div>
-      <p>Recherche en cours...</p>
+<!-- Bottom sheet -->
+<div id="bottom-sheet">
+  <div id="sheet-handle"></div>
+  <div id="sheet-header">
+    <div>
+      <div id="sheet-title">Résultats</div>
     </div>
-    <p id="empty-state" class="hidden">Aucun endroit trouvé dans cette zone.</p>
-    <p id="error-state" class="hidden"></p>
-    <ul id="place-list"></ul>
-  </aside>
-  <div id="map"></div>
-</main>
-
-<div id="settings-overlay" class="hidden"></div>
-<aside id="settings-drawer" class="drawer hidden">
-  <div class="drawer-header">
-    <h2>Paramètres</h2>
-    <button id="close-settings-btn">&#10005;</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="sheet-count"></span>
+      <button id="close-sheet-btn">✕</button>
+    </div>
   </div>
+  <div id="sheet-spinner" class="hidden"><div class="spinner"></div><span>Recherche...</span></div>
+  <div id="sheet-empty" class="hidden">Aucun résultat dans cette zone.</div>
+  <ul id="place-list"></ul>
+</div>
+
+<!-- Settings -->
+<div id="settings-overlay" class="hidden"></div>
+<div id="settings-drawer">
+  <div class="drawer-handle"></div>
   <div class="drawer-body">
+    <div class="drawer-title">⚙️ Paramètres</div>
     <div class="setting-group">
-      <label for="api-key-input">Clé Google Places API</label>
-      <div class="input-with-toggle">
-        <input id="api-key-input" type="password" placeholder="AIza..." autocomplete="off" />
-        <button id="toggle-key-btn" type="button">&#128065;</button>
+      <div class="setting-label">Clé Google Places API</div>
+      <div class="key-wrap">
+        <input id="api-key-input" type="password" placeholder="AIza..." autocomplete="off"/>
+        <button id="toggle-key-btn">👁</button>
       </div>
     </div>
     <div class="setting-group">
-      <label>Rayon : <strong id="radius-value">1500</strong> m</label>
-      <input id="radius-slider" type="range" min="500" max="5000" step="500" value="1500" />
+      <div class="setting-label">Rayon : <strong id="radius-value">1500</strong> m</div>
+      <input id="radius-slider" type="range" min="500" max="5000" step="500" value="1500"/>
       <div class="range-labels"><span>500m</span><span>5km</span></div>
     </div>
     <div class="setting-group">
-      <label for="max-results">Nombre de résultats</label>
+      <div class="setting-label">Nombre de résultats</div>
       <select id="max-results">
         <option value="10">10</option>
         <option value="20" selected>20</option>
         <option value="50">50</option>
       </select>
     </div>
-    <button id="save-settings-btn" class="btn-primary">&#128269; Enregistrer &amp; Rechercher</button>
+    <button id="save-settings-btn" class="save-btn">💾 Enregistrer</button>
   </div>
-</aside>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const state={lat:null,lng:null,category:'restaurants',apiKey:localStorage.getItem('localExplorer_apiKey')||'AIzaSyAz7Pkf1T5BRKLlq0Tlvz67Soit1JQOOhE',radius:parseInt(localStorage.getItem('localExplorer_radius')||'1500',10),maxResults:parseInt(localStorage.getItem('localExplorer_maxResults')||'20',10),markers:[],activeCardId:null};
-const CATEGORY_TYPES={restaurants:['restaurant','cafe','bar'],hotels:['lodging'],activities:['tourist_attraction','museum','park','amusement_park']};
-const MARKER_COLORS={restaurants:'#e53e3e',hotels:'#3182ce',activities:'#38a169'};
+// ── CATEGORIES ──
+const CATS=[
+  {id:'restaurant',label:'Restaurant',emoji:'🍽️',color:'#FF6B35',types:['restaurant']},
+  {id:'bar',label:'Bar',emoji:'🍷',color:'#E63946',types:['bar']},
+  {id:'hotel',label:'Hôtel',emoji:'🏨',color:'#6C63FF',types:['lodging']},
+  {id:'discotheque',label:'Discothèque',emoji:'🎉',color:'#9B59B6',types:['night_club']},
+  {id:'parc',label:'Parc',emoji:'🌳',color:'#27AE60',types:['park']},
+  {id:'cafe',label:'Café',emoji:'☕',color:'#8B5E3C',types:['cafe']},
+  {id:'boulangerie',label:'Boulangerie',emoji:'🥐',color:'#F4A261',types:['bakery']},
+  {id:'shopping',label:'Shopping',emoji:'🛍️',color:'#E91E8C',types:['shopping_mall','department_store']},
+  {id:'promenade',label:'Promenade',emoji:'🚶',color:'#1ABC9C',types:['tourist_attraction']},
+  {id:'viewpoint',label:'Point de vue',emoji:'👁️',color:'#2C3E50',types:['observation_deck','scenic_point']},
+];
+
+const PRICE={'PRICE_LEVEL_FREE':'Gratuit','PRICE_LEVEL_INEXPENSIVE':'$','PRICE_LEVEL_MODERATE':'$$','PRICE_LEVEL_EXPENSIVE':'$$$','PRICE_LEVEL_VERY_EXPENSIVE':'$$$$'};
 const FIELD_MASK='places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.location,places.regularOpeningHours,places.priceLevel,places.websiteUri';
 
-const map=L.map('map',{zoomControl:true}).setView([46.603354,1.888334],5);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(map);
+// ── STATE ──
+const S={
+  lat:null,lng:null,cat:null,
+  apiKey:localStorage.getItem('le_key')||'AIzaSyAz7Pkf1T5BRKLlq0Tlvz67Soit1JQOOhE',
+  radius:parseInt(localStorage.getItem('le_radius')||'1500',10),
+  maxResults:parseInt(localStorage.getItem('le_max')||'20',10),
+  markers:[],userMarker:null
+};
+
+// ── MAP ──
+const map=L.map('map',{zoomControl:false,attributionControl:true}).setView([46.6,1.88],5);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains:'abcd',maxZoom:20
+}).addTo(map);
+L.control.zoom({position:'bottomright'}).addTo(map);
+
 let radiusCircle=null;
-
-function updateRadiusCircle(){if(!state.lat)return;if(radiusCircle)map.removeLayer(radiusCircle);radiusCircle=L.circle([state.lat,state.lng],{radius:state.radius,color:'#0D9373',fillColor:'#07C983',fillOpacity:.06,weight:1.5,dashArray:'6 4'}).addTo(map)}
-function createMarkerIcon(cat){const c=MARKER_COLORS[cat]||'#0D9373';return L.divIcon({className:'',html:`<div class="marker-dot" style="background:${c}"></div>`,iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-30]})}
-function clearMarkers(){state.markers.forEach(({marker})=>map.removeLayer(marker));state.markers=[]}
-function renderMarkers(places){clearMarkers();places.forEach(p=>{if(!p.location)return;const{latitude,longitude}=p.location;const m=L.marker([latitude,longitude],{icon:createMarkerIcon(state.category)}).addTo(map);const name=p.displayName?.text||'Sans nom';const rating=p.rating?`&#11088; ${p.rating.toFixed(1)}`:'';const addr=p.formattedAddress||'';const link=p.websiteUri?`<a class="popup-link" href="${esc(p.websiteUri)}" target="_blank" rel="noopener">Voir le site &#8599;</a>`:'';m.bindPopup(`<div class="popup-content"><div class="popup-name">${esc(name)}</div>${rating?`<div class="popup-rating">${rating}</div>`:''}<div class="popup-address">${esc(addr)}</div>${link}</div>`);m.on('click',()=>highlightCard(p.id));state.markers.push({id:p.id,marker:m})})}
-function flyToPlace(p){if(!p.location)return;const{latitude,longitude}=p.location;map.flyTo([latitude,longitude],16,{animate:true,duration:.7});const f=state.markers.find(m=>m.id===p.id);if(f)setTimeout(()=>f.marker.openPopup(),750)}
-function highlightCard(id){state.activeCardId=id;document.querySelectorAll('.place-card').forEach(el=>el.classList.toggle('active',el.dataset.placeId===id));const c=document.querySelector(`.place-card[data-place-id="${id}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'})}
-
-async function fetchNearbyPlaces(){if(!state.apiKey){showError('Saisissez votre clé API dans les paramètres &#9881;');return[]}const body={includedTypes:CATEGORY_TYPES[state.category],maxResultCount:state.maxResults,locationRestriction:{circle:{center:{latitude:state.lat,longitude:state.lng},radius:state.radius}}};const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':state.apiKey,'X-Goog-FieldMask':FIELD_MASK},body:JSON.stringify(body)});if(!r.ok){let msg=`Erreur HTTP ${r.status}`;try{const e=await r.json();msg=e?.error?.message||msg}catch(_){}throw new Error(msg)}const d=await r.json();return d.places||[]}
-
-const PRICE={'PRICE_LEVEL_FREE':'(gratuit)','PRICE_LEVEL_INEXPENSIVE':'$','PRICE_LEVEL_MODERATE':'$$','PRICE_LEVEL_EXPENSIVE':'$$$','PRICE_LEVEL_VERY_EXPENSIVE':'$$$$'};
-function renderCards(places){const list=document.getElementById('place-list');list.innerHTML='';const count=document.getElementById('result-count');count.textContent=places.length>0?`${places.length} résultat${places.length>1?'s':''}`:'' ;if(places.length===0){document.getElementById('empty-state').classList.remove('hidden');return}document.getElementById('empty-state').classList.add('hidden');places.forEach(p=>{const li=document.createElement('li');li.className='place-card';li.dataset.placeId=p.id||'';const name=p.displayName?.text||'Sans nom';const rating=p.rating;const reviews=p.userRatingCount;const addr=p.formattedAddress||'';const isOpen=p.regularOpeningHours?.openNow;const price=p.priceLevel?PRICE[p.priceLevel]||'':'';let badge='';if(typeof isOpen==='boolean')badge=`<span class="open-badge ${isOpen?'open':'closed'}">${isOpen?'Ouvert':'Fermé'}</span>`;li.innerHTML=`<div class="card-top"><span class="place-name">${esc(name)}</span>${badge}</div><div class="card-meta">${rating?`<span class="rating">&#11088; ${rating.toFixed(1)} <span class="rating-count">(${reviews?.toLocaleString('fr')??''})</span></span>`:''} ${price?`<span class="price-level">${price}</span>`:''}</div><div class="place-address">${esc(addr)}</div>`;li.addEventListener('click',()=>{highlightCard(p.id);flyToPlace(p)});list.appendChild(li)})}
-
-function showSpinner(){document.getElementById('sidebar-spinner').classList.remove('hidden');document.getElementById('place-list').classList.add('hidden');document.getElementById('empty-state').classList.add('hidden');document.getElementById('error-state').classList.add('hidden');document.getElementById('result-count').textContent=''}
-function hideSpinner(){document.getElementById('sidebar-spinner').classList.add('hidden');document.getElementById('place-list').classList.remove('hidden')}
-function showError(msg){hideSpinner();const el=document.getElementById('error-state');el.innerHTML=`&#9888; ${msg}`;el.classList.remove('hidden');document.getElementById('place-list').innerHTML='';document.getElementById('result-count').textContent=''}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-
-async function runSearch(){if(!state.lat||!state.lng){showError('Position inconnue.');return}showSpinner();updateRadiusCircle();try{const places=await fetchNearbyPlaces();renderCards(places);renderMarkers(places)}catch(e){showError(esc(e.message))}finally{hideSpinner()}}
-
-function requestLocation(){
-  if(!navigator.geolocation){showError('Géolocalisation non supportée par ce navigateur.');return}
-  navigator.geolocation.getCurrentPosition(
-    pos=>{
-      state.lat=pos.coords.latitude;state.lng=pos.coords.longitude;
-      document.getElementById('location-fallback').classList.add('hidden');
-      map.setView([state.lat,state.lng],14);
-      runSearch();
-    },
-    err=>{
-      document.getElementById('location-fallback').classList.remove('hidden');
-      showError('Localisation refusée. Autorisez l\'accès à votre position dans les réglages Safari.');
-    },
-    {timeout:10000,maximumAge:0,enableHighAccuracy:true}
-  );
+function setUserPos(lat,lng){
+  S.lat=lat;S.lng=lng;
+  map.setView([lat,lng],15);
+  if(S.userMarker)map.removeLayer(S.userMarker);
+  S.userMarker=L.circleMarker([lat,lng],{radius:10,fillColor:'#4A90E2',color:'#fff',weight:3,fillOpacity:1,className:'user-dot'}).addTo(map);
+  if(radiusCircle)map.removeLayer(radiusCircle);
+  radiusCircle=L.circle([lat,lng],{radius:S.radius,color:'#4A90E2',fillColor:'#4A90E2',fillOpacity:.06,weight:1,dashArray:'5 4'}).addTo(map);
 }
 
-function openSettings(){document.getElementById('settings-drawer').classList.remove('hidden');document.getElementById('settings-overlay').classList.remove('hidden');requestAnimationFrame(()=>document.getElementById('settings-drawer').classList.add('open'));document.getElementById('api-key-input').value=state.apiKey;document.getElementById('radius-slider').value=state.radius;document.getElementById('radius-value').textContent=state.radius;document.getElementById('max-results').value=state.maxResults}
-function closeSettings(){const d=document.getElementById('settings-drawer');d.classList.remove('open');d.addEventListener('transitionend',()=>{d.classList.add('hidden');document.getElementById('settings-overlay').classList.add('hidden')},{once:true})}
-function saveSettings(){state.apiKey=document.getElementById('api-key-input').value.trim();state.radius=parseInt(document.getElementById('radius-slider').value,10);state.maxResults=parseInt(document.getElementById('max-results').value,10);localStorage.setItem('localExplorer_apiKey',state.apiKey);localStorage.setItem('localExplorer_radius',state.radius);localStorage.setItem('localExplorer_maxResults',state.maxResults);closeSettings();if(state.lat)runSearch()}
+// ── MARKERS ──
+function clearMarkers(){S.markers.forEach(({m})=>map.removeLayer(m));S.markers=[]}
+function addMarker(p,cat){
+  const{latitude:lat,longitude:lng}=p.location;
+  const icon=L.divIcon({className:'',html:`<div style="width:34px;height:34px;border-radius:50%;background:${cat.color};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:16px">${cat.emoji}</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-20]});
+  const m=L.marker([lat,lng],{icon}).addTo(map);
+  const name=p.displayName?.text||'?';
+  const rating=p.rating?`⭐ ${p.rating.toFixed(1)}`:'';
+  const addr=p.formattedAddress||'';
+  m.bindPopup(`<div class="popup-inner"><div class="popup-name">${esc(name)}</div>${rating?`<div class="popup-rating">${rating}</div>`:''}<div class="popup-addr">${esc(addr)}</div></div>`,{maxWidth:220});
+  m.on('click',()=>highlightCard(p.id));
+  S.markers.push({id:p.id,m});
+}
 
+// ── CARDS ──
+function highlightCard(id){
+  document.querySelectorAll('.place-card').forEach(el=>el.classList.toggle('active',el.dataset.pid===id));
+  const c=document.querySelector(`.place-card[data-pid="${id}"]`);
+  if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function flyTo(p){
+  if(!p.location)return;
+  map.flyTo([p.location.latitude,p.location.longitude],17,{duration:.8});
+  const f=S.markers.find(x=>x.id===p.id);
+  if(f)setTimeout(()=>f.m.openPopup(),900);
+}
+function renderCards(places,cat){
+  const list=document.getElementById('place-list');
+  list.innerHTML='';
+  document.getElementById('sheet-count').textContent=`${places.length} résultat${places.length>1?'s':''}`;
+  if(!places.length){document.getElementById('sheet-empty').classList.remove('hidden');return}
+  document.getElementById('sheet-empty').classList.add('hidden');
+  places.forEach(p=>{
+    const li=document.createElement('li');
+    li.className='place-card';li.dataset.pid=p.id||'';
+    li.style.setProperty('--cat-color',cat.color);
+    const name=p.displayName?.text||'Sans nom';
+    const rating=p.rating;const reviews=p.userRatingCount;
+    const addr=p.formattedAddress||'';
+    const isOpen=p.regularOpeningHours?.openNow;
+    const price=p.priceLevel?PRICE[p.priceLevel]||'':'';
+    let badge='';if(typeof isOpen==='boolean')badge=`<span class="open-badge ${isOpen?'open':'closed'}">${isOpen?'Ouvert':'Fermé'}</span>`;
+    li.innerHTML=`<div class="card-emoji">${cat.emoji}</div><div class="card-body"><div class="place-name">${esc(name)}</div><div class="card-meta">${rating?`<span class="rating">⭐ ${rating.toFixed(1)} <span class="rating-count">(${reviews?.toLocaleString('fr')??''})</span></span>`:''}${badge}${price?`<span class="price">${price}</span>`:''}</div><div class="place-address">${esc(addr)}</div></div>`;
+    li.addEventListener('click',()=>{highlightCard(p.id);flyTo(p)});
+    list.appendChild(li);
+  });
+}
+
+// ── API ──
+async function fetchPlaces(cat){
+  const body={includedTypes:cat.types,maxResultCount:S.maxResults,locationRestriction:{circle:{center:{latitude:S.lat,longitude:S.lng},radius:S.radius}}};
+  const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':S.apiKey,'X-Goog-FieldMask':FIELD_MASK},body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${r.status}`)}
+  return(await r.json()).places||[];
+}
+
+// ── SEARCH ──
+async function runSearch(cat){
+  if(!S.lat){showLocError();return}
+  S.cat=cat;
+  openSheet();
+  showSheetSpinner(true);
+  clearMarkers();
+  document.getElementById('sheet-title').textContent=`${cat.emoji} ${cat.label}`;
+  document.getElementById('place-list').innerHTML='';
+  document.getElementById('sheet-count').textContent='';
+  document.getElementById('sheet-empty').classList.add('hidden');
+  try{
+    const places=await fetchPlaces(cat);
+    places.forEach(p=>addMarker(p,cat));
+    renderCards(places,cat);
+  }catch(e){
+    document.getElementById('sheet-empty').textContent=`⚠️ ${e.message}`;
+    document.getElementById('sheet-empty').classList.remove('hidden');
+  }finally{showSheetSpinner(false)}
+}
+
+// ── SHEET ──
+function openSheet(){document.getElementById('bottom-sheet').classList.add('open')}
+function closeSheet(){document.getElementById('bottom-sheet').classList.remove('open')}
+function showSheetSpinner(v){document.getElementById('sheet-spinner').classList.toggle('hidden',!v);document.getElementById('place-list').classList.toggle('hidden',v)}
+
+// ── GEOLOCATION ──
+function requestLocation(){
+  document.getElementById('loc-error').classList.add('hidden');
+  if(!navigator.geolocation){showLocError();return}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{setUserPos(pos.coords.latitude,pos.coords.longitude);if(S.cat)runSearch(S.cat)},
+    ()=>showLocError(),
+    {timeout:10000,enableHighAccuracy:true}
+  );
+}
+function showLocError(){document.getElementById('loc-error').classList.remove('hidden')}
+
+// ── SETTINGS ──
+function openSettings(){
+  document.getElementById('api-key-input').value=S.apiKey;
+  document.getElementById('radius-slider').value=S.radius;
+  document.getElementById('radius-value').textContent=S.radius;
+  document.getElementById('max-results').value=S.maxResults;
+  document.getElementById('settings-drawer').classList.add('open');
+  document.getElementById('settings-overlay').classList.remove('hidden');
+}
+function closeSettings(){
+  document.getElementById('settings-drawer').classList.remove('open');
+  document.getElementById('settings-overlay').classList.add('hidden');
+}
+function saveSettings(){
+  S.apiKey=document.getElementById('api-key-input').value.trim();
+  S.radius=parseInt(document.getElementById('radius-slider').value,10);
+  S.maxResults=parseInt(document.getElementById('max-results').value,10);
+  localStorage.setItem('le_key',S.apiKey);
+  localStorage.setItem('le_radius',S.radius);
+  localStorage.setItem('le_max',S.maxResults);
+  closeSettings();
+  if(S.lat&&S.cat)runSearch(S.cat);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ── INIT ──
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('category-tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');state.category=b.dataset.category;if(state.lat)runSearch()});
+  // Build category pills
+  const scroll=document.getElementById('categories-scroll');
+  CATS.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='cat-btn';
+    btn.style.background=cat.color;
+    btn.innerHTML=`${cat.emoji} ${cat.label}`;
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      runSearch(cat);
+    });
+    scroll.appendChild(btn);
+  });
+
+  document.getElementById('locate-btn').addEventListener('click',requestLocation);
   document.getElementById('settings-btn').addEventListener('click',openSettings);
-  document.getElementById('close-settings-btn').addEventListener('click',closeSettings);
   document.getElementById('settings-overlay').addEventListener('click',closeSettings);
   document.getElementById('save-settings-btn').addEventListener('click',saveSettings);
+  document.getElementById('close-sheet-btn').addEventListener('click',closeSheet);
+  document.getElementById('retry-loc').addEventListener('click',requestLocation);
   document.getElementById('radius-slider').addEventListener('input',e=>document.getElementById('radius-value').textContent=e.target.value);
   const ki=document.getElementById('api-key-input');
   document.getElementById('toggle-key-btn').addEventListener('click',()=>{ki.type=ki.type==='password'?'text':'password'});
-  document.getElementById('use-location-btn').addEventListener('click',requestLocation);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings()});
+
   requestLocation();
 });
 </script>
