@@ -1,104 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Local Explorer</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0;url=standalone.html"/>
+<title>Local Explorer</title>
 </head>
 <body>
-
-  <header id="app-header">
-    <div class="header-left">
-      <span class="app-logo">&#9711;</span>
-      <span class="app-title">Local Explorer</span>
-    </div>
-    <nav id="category-tabs" role="tablist">
-      <button class="tab active" data-category="restaurants" role="tab">
-        <span class="tab-icon">&#127374;</span> Restaurants
-      </button>
-      <button class="tab" data-category="hotels" role="tab">
-        <span class="tab-icon">&#127976;</span> Hotels
-      </button>
-      <button class="tab" data-category="activities" role="tab">
-        <span class="tab-icon">&#127957;</span> Activités
-      </button>
-    </nav>
-    <button id="settings-btn" aria-label="Paramètres" title="Paramètres">&#9881;</button>
-  </header>
-
-  <div id="location-fallback" class="hidden">
-    <p>&#128205; Localisation indisponible. Entrez vos coordonnées manuellement :</p>
-    <div class="fallback-inputs">
-      <input id="lat-input" type="number" step="any" placeholder="Latitude (ex: 48.8566)" />
-      <input id="lng-input" type="number" step="any" placeholder="Longitude (ex: 2.3522)" />
-      <button id="manual-locate-btn">Rechercher</button>
-    </div>
-  </div>
-
-  <main id="app-body">
-    <aside id="sidebar">
-      <div id="sidebar-header">
-        <span id="result-count"></span>
-      </div>
-      <div id="sidebar-spinner" class="hidden">
-        <div class="spinner"></div>
-        <p>Recherche en cours...</p>
-      </div>
-      <p id="empty-state" class="hidden">Aucun endroit trouvé dans cette zone.</p>
-      <p id="error-state" class="hidden"></p>
-      <ul id="place-list" role="list"></ul>
-    </aside>
-    <div id="map" role="main" aria-label="Carte interactive"></div>
-  </main>
-
-  <!-- Settings Drawer -->
-  <div id="settings-overlay" class="hidden"></div>
-  <aside id="settings-drawer" class="drawer hidden" aria-label="Paramètres">
-    <div class="drawer-header">
-      <h2>Paramètres</h2>
-      <button id="close-settings-btn" aria-label="Fermer">&#10005;</button>
-    </div>
-
-    <div class="drawer-body">
-      <div class="setting-group">
-        <label for="api-key-input">Clé Google Places API</label>
-        <div class="input-with-toggle">
-          <input id="api-key-input" type="password" placeholder="AIza..." autocomplete="off" />
-          <button id="toggle-key-btn" type="button" aria-label="Afficher/masquer la clé">&#128065;</button>
-        </div>
-        <p class="setting-hint">
-          &#9888; Activez <strong>Places API (New)</strong> dans Google Cloud Console et restreignez la clé à votre origine.
-          <a href="https://console.cloud.google.com/apis/library/places-backend.googleapis.com" target="_blank" rel="noopener">Ouvrir la console &#8599;</a>
-        </p>
-      </div>
-
-      <div class="setting-group">
-        <label for="radius-slider">Rayon de recherche : <strong id="radius-value">1500</strong> m</label>
-        <input id="radius-slider" type="range" min="500" max="5000" step="500" value="1500" />
-        <div class="range-labels"><span>500m</span><span>5km</span></div>
-      </div>
-
-      <div class="setting-group">
-        <label for="max-results">Nombre de résultats</label>
-        <select id="max-results">
-          <option value="10">10</option>
-          <option value="20" selected>20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-
-      <button id="save-settings-btn" class="btn-primary">&#128269; Enregistrer &amp; Rechercher</button>
-
-      <p class="setting-hint center">
-        Pour tester en local : <code>python3 -m http.server 8080</code><br/>
-        puis ouvrir <code>http://localhost:8080</code>
-      </p>
-    </div>
-  </aside>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+<script>window.location.replace('standalone.html')</script>
 </body>
 </html>
